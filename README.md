@@ -1,0 +1,2 @@
+# ProjectNikkei
+A social experiment
