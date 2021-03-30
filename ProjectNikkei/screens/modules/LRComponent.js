@@ -130,13 +130,8 @@ export default function LRComponent(navigation, loginFunc, registerFunc) {
           <Text style={{ textAlign: "center", marginTop: 40 }}>
             New to the site?
           </Text>
-          <TouchableOpacity>
-            <Text
-              onPress={renderRegister}
-              style={{ textAlign: "center", color: "blue" }}
-            >
-              Register
-            </Text>
+          <TouchableOpacity onPress={renderRegister}>
+            <Text style={{ textAlign: "center", color: "blue" }}>Register</Text>
           </TouchableOpacity>
         </View>
       </View>
