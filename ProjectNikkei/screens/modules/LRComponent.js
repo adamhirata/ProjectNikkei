@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   StyleSheet,
@@ -57,6 +57,8 @@ export default function LRComponent(navigation, loginFunc, registerFunc) {
   const [secureTextEntry, setShow] = useState(true);
   const [registerComponent, setComponent] = useState();
   const [registering, setRegister] = useState(false);
+  const [regText, setText] = useState();
+  const [otherText, setOther] = useState();
 
   const confirmCheck = (val) => {
     setConfirm(val);
@@ -71,9 +73,10 @@ export default function LRComponent(navigation, loginFunc, registerFunc) {
     }
   };
 
-  const renderRegister = () => {
-    setRegister(!registering);
+  useEffect(() => {
     if (registering) {
+      setText("Login");
+      setOther("Register");
       setComponent(
         <View>
           <Text style={styles.text}>Confirm Password</Text>
@@ -86,9 +89,11 @@ export default function LRComponent(navigation, loginFunc, registerFunc) {
         </View>
       );
     } else {
+      setText("Register");
+      setOther("Login");
       setComponent();
     }
-  };
+  }, [registering]);
 
   const login = () => {
     if (errorHandling(email, password, setMsg)) {
@@ -130,12 +135,14 @@ export default function LRComponent(navigation, loginFunc, registerFunc) {
           <Text style={{ textAlign: "center", marginTop: 40 }}>
             New to the site?
           </Text>
-          <TouchableOpacity onPress={renderRegister}>
-            <Text style={{ textAlign: "center", color: "blue" }}>Register</Text>
+          <TouchableOpacity onPress={() => setRegister(!registering)}>
+            <Text style={{ textAlign: "center", color: "blue" }}>
+              {regText}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
-      <Button title="Login" color="red" onPress={login} />
+      <Button title={otherText} color="red" onPress={login} />
     </View>
   );
 }
@@ -147,6 +154,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   paper: {
+    width: 300,
     padding: 40,
     paddingBottom: 12,
     shadowColor: "#000",

@@ -1,6 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { Calendar, Agenda, LocaleConfig } from "react-native-calendars";
 
 LocaleConfig.locales["en"] = {
@@ -45,68 +51,144 @@ LocaleConfig.locales["en"] = {
   today: "Today",
 };
 LocaleConfig.defaultLocale = "en";
-export default function CalComponent() {
-  const nsu = { key: "nsu", color: "red" };
-  const inc = { key: "inc", color: "blue" };
+
+export default function CalComponent({ eventObj }) {
+  const data = eventObj;
+  const [date, setDate] = useState();
+  const [agenda, setAgenda] = useState(
+    <Agenda items={data} selected={dateFunc} hideKnob={true} />
+  );
+
+  const dateFunc = () => {
+    if (date == undefined) {
+      return new Date();
+    } else {
+      return new Date(date);
+    }
+  };
+
+  const refreshAgenda = () => {
+    if (date == undefined) {
+      return;
+    }
+    return <EventList date={date} data={data} />;
+  };
+
+  useEffect(() => {
+    setAgenda(refreshAgenda);
+  }, [date]);
+
   return (
     <View>
       <Calendar
-        markedDates={{
-          "2021-03-20": {
-            periods: [
-              { startingDay: true, endingDay: false, color: nsu.color },
-              { startingDay: true, endingDay: true, color: inc.color },
-            ],
-          },
-          "2021-03-21": {
-            periods: [
-              { startingDay: false, endingDay: false, color: nsu.color },
-            ],
-          },
-          "2021-03-22": {
-            periods: [
-              { startingDay: false, endingDay: false, color: nsu.color },
-            ],
-          },
-          "2021-03-23": {
-            periods: [
-              { startingDay: false, endingDay: false, color: nsu.color },
-            ],
-          },
-          "2021-03-24": {
-            periods: [
-              { startingDay: false, endingDay: false, color: nsu.color },
-            ],
-          },
-          "2021-03-25": {
-            periods: [
-              { startingDay: false, endingDay: false, color: nsu.color },
-            ],
-          },
-          "2021-03-26": {
-            periods: [
-              { startingDay: false, endingDay: true, color: nsu.color },
-            ],
-          },
-          "2021-03-27": {
-            periods: [
-              { startingDay: true, endingDay: false, color: nsu.color },
-            ],
-          },
-
-          "2021-03-28": {
-            periods: [
-              { startingDay: false, endingDay: true, color: nsu.color },
-            ],
-          },
-        }}
+        markedDates={data}
         markingType={"multi-period"}
+        onDayPress={(day) => {
+          setDate(day.dateString);
+        }}
         hideArrows={false}
-        style={{}}
+        style={styles.calendar}
       />
+      {agenda}
     </View>
   );
 }
+
+const Event = (data) => {
+  let timeFrame;
+  if (data.data.allDay) {
+    timeFrame = "All Day";
+  } else {
+    timeFrame = data.data.startTime + " - " + data.data.endTime;
+  }
+  return (
+    <View style={{ padding: 10 }}>
+      <TouchableOpacity>
+        <Text>{data.data.name}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              height: 10,
+              width: 10,
+              borderRadius: 50,
+              backgroundColor: data.data.color,
+              marginRight: 7,
+            }}
+          ></View>
+          <Text>{data.data.sub}</Text>
+        </View>
+        <Text>{timeFrame}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const EventList = (date) => {
+  const dateObj = new Date(date.date + " 00:00");
+  let weekday;
+  switch (dateObj.getDay()) {
+    case 0:
+      weekday = "Sun";
+      break;
+    case 1:
+      weekday = "Mon";
+      break;
+    case 2:
+      weekday = "Tue";
+      break;
+    case 3:
+      weekday = "Wed";
+      break;
+    case 4:
+      weekday = "Thu";
+      break;
+    case 5:
+      weekday = "Fri";
+      break;
+    case 6:
+      weekday = "Sat";
+      break;
+  }
+
+  let events;
+  if (date.data[date.date] == undefined) {
+    events = (
+      <View
+        style={{ alignItems: "center", justifyContent: "center", padding: 10 }}
+      >
+        <Text>No events today</Text>
+      </View>
+    );
+  } else {
+    events = date.data[date.date].events.map((info) => <Event data={info} />);
+  }
+
+  return (
+    <View style={styles.eventList}>
+      <View
+        style={{
+          width: 60,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 10,
+        }}
+      >
+        <Text style={{ fontSize: 20 }}>{dateObj.getDate()}</Text>
+        <Text>{weekday}</Text>
+      </View>
+      <View
+        style={{
+          paddingTop: 4,
+          paddingBottom: 2,
+          height: "100%",
+          borderWidth: 1,
+          borderColor: "lightgray",
+        }}
+      ></View>
+      <View style={{ width: "100%" }}>{events}</View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -114,5 +196,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  calendar: {
+    marginTop: 25,
+    minWidth: 700,
+    paddingBottom: 50,
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOpacity: 0.58,
+    shadowRadius: 4.0,
+    overflow: "visible",
+  },
+  eventList: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "white",
+    marginTop: 40,
+    marginBottom: 40,
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOpacity: 0.58,
+    shadowRadius: 4.0,
+    overflow: "visible",
   },
 });
